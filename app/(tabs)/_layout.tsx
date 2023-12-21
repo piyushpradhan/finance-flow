@@ -1,55 +1,57 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, useColorScheme } from 'react-native';
+import { useColorScheme } from "react-native";
+import TabOneScreen from "./index";
+import Transactions from "./transactions";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Icon from "react-native-vector-icons/Feather";
 
-import Colors from '../../constants/Colors';
-
-/**
- * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
- */
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import Colors from "../../constants/Colors";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const Tab = createBottomTabNavigator();
 
   return (
-    <Tabs
+    <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-      }}>
-      <Tabs.Screen
-        name="index"
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={TabOneScreen}
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="home" size={size} color={color} />;
+          },
         }}
       />
-      <Tabs.Screen
-        name="two"
+      <Tab.Screen
+        name="Transactions"
+        component={Transactions}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="dollar-sign" size={size} color={color} />;
+          },
         }}
       />
-    </Tabs>
+      <Tab.Screen
+        name="Analytics"
+        component={Transactions}
+        options={{
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="pie-chart" size={size} color={color} />;
+          },
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={Transactions}
+        options={{
+          tabBarIcon: ({ color, size }) => {
+            return <Icon name="user" size={size} color={color} />;
+          },
+        }}
+      />
+    </Tab.Navigator>
   );
 }
