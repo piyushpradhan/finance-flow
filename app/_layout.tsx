@@ -1,21 +1,24 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { PaperProvider } from "react-native-paper";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
 import Icon from "../components/Icon";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen } from "expo-router";
 import { useEffect } from "react";
-import { useColorScheme } from "react-native";
+// import { useColorScheme } from "react-native";
+import useUserStore from "../store/features/user";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import TabLayout from "./(tabs)/_layout";
+import ModalScreen from "./modal";
+import AuthenticationLayout from "./(auth)/_layout";
+import ThemeProvider from "../provider/ThemeProvider";
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from "expo-router";
+
+const Stack = createNativeStackNavigator();
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -26,10 +29,14 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const userStore = useUserStore();
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
+
+  const isLoggedIn =
+    userStore.isLoggedIn && userStore.accessToken.trim().length !== 0;
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -46,27 +53,40 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return <RootLayoutNav isLoggedIn={isLoggedIn} />;
 }
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
+  // const colorScheme = useColorScheme();
   const queryClient = new QueryClient();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <PaperProvider
-          settings={{
-            icon: (props) => <Icon type={props.name} {...props} />,
-          }}
-        >
-          <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </PaperProvider>
+        <Stack.Navigator>
+          {isLoggedIn ? (
+            <>
+              <Stack.Screen
+                name="(tabs)"
+                component={TabLayout}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="modal"
+                component={ModalScreen}
+                options={{ presentation: "modal" }}
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen
+                name="(auth)"
+                component={AuthenticationLayout}
+                options={{ headerShown: false }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
       </QueryClientProvider>
     </ThemeProvider>
   );

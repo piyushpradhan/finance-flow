@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { Text, View } from "../../components/Themed";
+import { Text, View } from "react-native";
 import { Divider, List } from "react-native-paper";
 
 export default function TransactionAccordion() {

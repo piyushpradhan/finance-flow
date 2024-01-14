@@ -17,3 +17,5 @@ export const login = (username: string, password: string) =>
   );
 
 export const loginWithGoogle = () => axios.get(`${backendUrl}/auth/google`);
+
+export const logout = () => axios.get(`${backendUrl}/auth/logout`);

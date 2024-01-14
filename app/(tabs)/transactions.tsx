@@ -1,6 +1,4 @@
-import { StyleSheet } from "react-native";
-
-import { View } from "../../components/Themed";
+import { StyleSheet, View } from "react-native";
 import TransactionAccordion from "../../components/Transactions/TransactionAccordion";
 
 export default function Transactions() {
