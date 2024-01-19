@@ -6,3 +6,12 @@ export type RootStackParamList = {
   modal: undefined;
   "(auth)": undefined;
 };
+
+export type Category = {
+  id: string;
+  name: string;
+  icon?: string;
+  subCategories: string[];
+  uid: string;
+  transactions: string[];
+};
