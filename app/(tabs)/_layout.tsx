@@ -1,10 +1,11 @@
 import { useColorScheme } from "react-native";
-import TabOneScreen from "./index";
+import Dashboard from "./dashboard";
 import Transactions from "./transactions";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Icon from "react-native-vector-icons/Feather";
+import { Icon } from "../../components/ui";
 
 import Colors from "../../constants/Colors";
+import Profile from "./profile";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -18,7 +19,7 @@ export default function TabLayout() {
     >
       <Tab.Screen
         name="Home"
-        component={TabOneScreen}
+        component={Dashboard}
         options={{
           tabBarIcon: ({ color, size }) => {
             return <Icon name="home" size={size} color={color} />;
@@ -45,7 +46,7 @@ export default function TabLayout() {
       />
       <Tab.Screen
         name="Profile"
-        component={Transactions}
+        component={Profile}
         options={{
           tabBarIcon: ({ color, size }) => {
             return <Icon name="user" size={size} color={color} />;

@@ -1,28 +1,29 @@
-import { NativeSyntheticEvent, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
-import { Text, View } from "../../components/Themed";
+import { Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
-import { Mutation, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { login, loginWithGoogle } from "../../api";
 import { useState } from "react";
 import Colors from "../../constants/Colors";
-import { TextInputChangeEventData } from "react-native";
 import { useRouter } from "expo-router";
+import useUserStore from "../../store/features/user";
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const userStore = useUserStore();
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-  const router = useRouter();
 
   const loginMutation = useMutation({
     mutationFn: () => login(emailInput, passwordInput),
     onSuccess: (data) => {
-      // TODO: Update the user data in global store
-      router.replace("/(tabs)/");
+      userStore.loginWithPassword(data.data["data"]);
+      router.replace("/(tabs)/dashboard");
     },
     onError: (err) => {
-      console.log(err);
+      console.error(err);
     },
   });
 
@@ -30,7 +31,9 @@ export default function LoginScreen() {
     mutationFn: loginWithGoogle,
     onSuccess: (data) => {
       // TODO: Update the user data in global store
-      router.replace("/(tabs)/");
+      // TODO: Figure out how to do Google Authentication with custom backend authetication
+      console.log("from api", data.data);
+      router.replace("/(tabs)/dashboard");
     },
     onError: (error) => {
       console.error("Login with Google failed: ", error);
@@ -48,6 +51,7 @@ export default function LoginScreen() {
         <TextInput
           mode="outlined"
           label="Email"
+          autoCapitalize="none"
           style={styles.inputField}
           value={emailInput}
           onChangeText={(value) => setEmailInput(value)}
@@ -55,6 +59,7 @@ export default function LoginScreen() {
         <TextInput
           mode="outlined"
           label="Password"
+          autoCapitalize="none"
           style={styles.inputField}
           value={passwordInput}
           onChangeText={(value) => setPasswordInput(value)}
