@@ -1,10 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { PaperProvider } from "react-native-paper";
-import Icon from "../components/Icon";
 import { useFonts } from "expo-font";
 import { SplashScreen } from "expo-router";
 import { useEffect } from "react";
-// import { useColorScheme } from "react-native";
 import useUserStore from "../store/features/user";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -12,6 +9,7 @@ import TabLayout from "./(tabs)/_layout";
 import ModalScreen from "./modal";
 import AuthenticationLayout from "./(auth)/_layout";
 import ThemeProvider from "../provider/ThemeProvider";
+import CategoryLayout from "./(category)/_layout";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -70,6 +68,14 @@ function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
                 name="(tabs)"
                 component={TabLayout}
                 options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="(category)"
+                component={CategoryLayout}
+                options={{
+                  headerShown: true,
+                  headerTitle: "Categories",
+                }}
               />
               <Stack.Screen
                 name="modal"

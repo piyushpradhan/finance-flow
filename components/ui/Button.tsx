@@ -8,33 +8,45 @@ type Props = {
   children: React.ReactNode;
   handleClick: () => void;
   icon?: IconSource;
-  mode?: "text" | "outlined" | "contained" | "elevated" | "contained-tonal";
+  style?: React.ComponentProps<typeof PaperButton>["style"];
+  mode?: React.ComponentProps<typeof PaperButton>["mode"];
 };
 
-const Button = ({ children, mode, icon, handleClick }: Props) => {
+const Button = ({
+  children,
+  mode = "text",
+  icon,
+  handleClick,
+  style: customStyles,
+}: Props) => {
   const theme = useAppTheme();
 
-  console.log({ theme });
+  const getBackgroundColor = (mode: string) => {
+    switch (mode) {
+      case "error":
+        return theme.colors.error;
+      default:
+        return theme.colors.primary;
+    }
+  };
+
+  const styles = StyleSheet.create({
+    button: {
+      padding: theme.spacing(0),
+      backgroundColor: getBackgroundColor(mode),
+    },
+  });
 
   return (
     <PaperButton
       icon={icon}
       mode={mode}
       onPress={handleClick}
-      style={[
-        styles.button,
-        {
-          backgroundColor: theme.colors.error,
-        },
-      ]}
+      style={[styles.button, customStyles]}
     >
       {children}
     </PaperButton>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {},
-});
 
 export default Button;

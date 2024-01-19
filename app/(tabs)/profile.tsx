@@ -4,11 +4,20 @@ import { View } from "react-native";
 import Button from "../../components/ui/Button";
 import { useMutation } from "@tanstack/react-query";
 import { logout } from "../../api";
-import { useRouter } from "expo-router";
+import {
+  NavigationContainerRef,
+  useNavigation,
+} from "@react-navigation/native";
 import useUserStore from "../../store/features/user";
+import { useAppTheme } from "../../provider/ThemeProvider";
+import { List } from "react-native-paper";
+import { RootStackParamList } from "../types";
 
 export default function Profile() {
-  const router = useRouter();
+  const navigation =
+    useNavigation<NavigationContainerRef<RootStackParamList>>();
+
+  const theme = useAppTheme();
   const { logout: logoutUser } = useUserStore();
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -17,12 +26,33 @@ export default function Profile() {
     },
     onSuccess: () => {
       logoutUser();
-      router.replace("/(auth)/");
+      navigation.navigate("(auth)");
+    },
+  });
+
+  const handleNavigation = () => {
+    navigation.navigate("(category)");
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+      padding: theme.spacing(2),
+      gap: theme.spacing(1),
     },
   });
 
   return (
     <View style={styles.container}>
+      <List.Item
+        theme={theme}
+        title="Categories"
+        onPress={() => {
+          handleNavigation();
+        }}
+      />
       <Button
         mode="contained"
         handleClick={() => {
@@ -34,16 +64,3 @@ export default function Profile() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "flex-start",
-    padding: 8,
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
-  },
-});

@@ -16,7 +16,6 @@ export const loginUserWithPassword = async (
 
 export const updateUserData = (user: User) => {
   try {
-    console.log(user);
     return user;
   } catch (err) {
     console.error(err);

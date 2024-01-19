@@ -20,7 +20,7 @@ export default function LoginScreen() {
     mutationFn: () => login(emailInput, passwordInput),
     onSuccess: (data) => {
       userStore.loginWithPassword(data.data["data"]);
-      router.replace("/(tabs)/");
+      router.replace("/(tabs)/dashboard");
     },
     onError: (err) => {
       console.error(err);
@@ -31,8 +31,9 @@ export default function LoginScreen() {
     mutationFn: loginWithGoogle,
     onSuccess: (data) => {
       // TODO: Update the user data in global store
+      // TODO: Figure out how to do Google Authentication with custom backend authetication
       console.log("from api", data.data);
-      router.replace("/(tabs)/");
+      router.replace("/(tabs)/dashboard");
     },
     onError: (error) => {
       console.error("Login with Google failed: ", error);

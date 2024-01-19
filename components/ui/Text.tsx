@@ -1,19 +1,24 @@
 import React from "react";
-import { Platform, StyleSheet } from "react-native";
-import { Text as DefaultText } from "react-native";
+import { StyleSheet } from "react-native";
+import { Text as PaperText } from "react-native-paper";
 
 type Props = {
-  style?: React.ComponentProps<typeof DefaultText>["style"];
+  style?: React.ComponentProps<typeof PaperText>["style"];
+  variant?: React.ComponentProps<typeof PaperText>["variant"];
   children: React.ReactNode;
+  props?: Omit<React.ComponentProps<typeof PaperText>, "style" | "variant">;
 };
 
-export default function Text({ style, children }: Props) {
-  return <DefaultText style={[styles.text, style]}>{children}</DefaultText>;
-}
+const Text = ({ style, children, variant = "bodyLarge", props }: Props) => {
+  const styles = StyleSheet.create({
+    text: {},
+  });
 
-const styles = StyleSheet.create({
-  text: {
-    fontSize: 18,
-    fontFamily: Platform.OS === "android" ? "Roboto" : "Avenir",
-  },
-});
+  return (
+    <PaperText variant={variant} style={[styles.text, style]} {...props}>
+      {children}
+    </PaperText>
+  );
+};
+
+export default Text;

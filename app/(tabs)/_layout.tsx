@@ -2,7 +2,7 @@ import { useColorScheme } from "react-native";
 import Dashboard from "./dashboard";
 import Transactions from "./transactions";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Icon from "react-native-vector-icons/Feather";
+import { Icon } from "../../components/ui";
 
 import Colors from "../../constants/Colors";
 import Profile from "./profile";
