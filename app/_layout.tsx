@@ -10,6 +10,12 @@ import ModalScreen from "./modal";
 import AuthenticationLayout from "./(auth)/_layout";
 import ThemeProvider from "../provider/ThemeProvider";
 import CategoryLayout from "./(category)/_layout";
+import { Button } from "../components/ui";
+import {
+  NavigationContainerRef,
+  useNavigation,
+} from "@react-navigation/native";
+import { RootStackParamList } from "./types";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -57,6 +63,8 @@ export default function RootLayout() {
 function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   // const colorScheme = useColorScheme();
   const queryClient = new QueryClient();
+  const navigation =
+    useNavigation<NavigationContainerRef<RootStackParamList>>();
 
   return (
     <ThemeProvider>
@@ -75,6 +83,16 @@ function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
                 options={{
                   headerShown: true,
                   headerTitle: "Categories",
+                  headerRight: () => (
+                    <Button
+                      mode="contained"
+                      handleClick={() => {
+                        navigation.navigate("(category)/edit");
+                      }}
+                    >
+                      + Add
+                    </Button>
+                  ),
                 }}
               />
               <Stack.Screen

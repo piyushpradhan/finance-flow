@@ -8,10 +8,22 @@ export type RootStackParamList = {
 };
 
 export type Category = {
+  _id: string;
   id: string;
   name: string;
   icon?: string;
   subCategories: string[];
   uid: string;
   transactions: string[];
+};
+
+export type Transaction = {
+  id: string;
+  timestamp: string;
+  amount: number;
+  user: string;
+  account: string;
+  category: string;
+  note?: string;
+  type: "income" | "expense" | "transfer" | "debt" | "receivable";
 };
