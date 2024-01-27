@@ -25,6 +25,9 @@ const Button = ({
     switch (mode) {
       case "error":
         return theme.colors.error;
+      case "outlined":
+      case "text":
+        return theme.colors.surface;
       default:
         return theme.colors.primary;
     }

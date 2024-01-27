@@ -7,17 +7,17 @@ export const getCategories = (
   accessToken: string,
   refreshToken: string,
   uid: string
-) => {
-  const config = {
+) =>
+  axios({
+    method: "post",
+    url: `${backendUrl}/category/all`,
+    data: { uid },
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
       Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
     },
-  };
-
-  return axios.post(`${backendUrl}/category/all`, { uid }, config);
-};
+  });
 
 export const createCategory = (
   accessToken: string,
@@ -44,3 +44,21 @@ export const createCategory = (
     config
   );
 };
+
+export const deleteSubCategory = (
+  accessToken: string,
+  refreshToken: string,
+  uid: string,
+  subCategoryName: string
+) =>
+  axios.delete(`${backendUrl}/category/delete`, {
+    data: {
+      uid,
+      name: subCategoryName,
+    },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
+      "Content-Type": "application/json",
+    },
+  });
