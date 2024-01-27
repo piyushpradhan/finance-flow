@@ -1,24 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Accordion } from "../ui";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCategories } from "../../api";
 import useUserStore from "../../store/features/user";
-import { FlatList } from "react-native";
+import { FlatList, StyleSheet } from "react-native";
 
 import useCategoryStore from "../../store/features/category";
 import Loader from "../Loader";
-import { Category } from "../../app/types";
 import CategoriesItemLeft from "./CategoriesItemLeft";
 import CategoriesItemRight from "./CategoriesItemRight";
 import { ListItemProps } from "../ui/types";
+import { useAppTheme } from "../../provider/ThemeProvider";
 
 const CategoriesAccordion = () => {
+  const theme = useAppTheme();
+  const queryClient = useQueryClient();
   const userStore = useUserStore();
   const categoryStore = useCategoryStore();
-  // TODO: Better naming
-  const [categoryAccordion] = useState<Map<string, ListItemProps[]>>(
-    new Map<string, ListItemProps[]>()
-  );
 
   const {
     data: response,
@@ -42,24 +40,13 @@ const CategoriesAccordion = () => {
       if (isSuccess) {
         const responseData = response?.data ?? [];
         responseData && categoryStore.setCategories(responseData);
-        responseData.forEach((category: Category) => {
-          if (category.subCategories && category.subCategories.length !== 0) {
-            category.subCategories.forEach((subCategory: string) => {
-              // TODO: Better name please
-              const subItems = categoryAccordion.get(category._id) ?? [];
-              categoryAccordion.set(category._id, [
-                ...subItems,
-                {
-                  title: subCategory,
-                  leftComponent: <CategoriesItemLeft />,
-                  rightComponent: <CategoriesItemRight />,
-                },
-              ]);
-            });
-          }
+        queryClient.setQueryData(["categories"], () => {
+          return {
+            data: responseData,
+          };
         });
       } else if (isError) {
-        // Handle the error condition
+        // TODO: Show a snackbar or something
         console.error("Error fetching categories: ", error);
       }
     }
@@ -69,18 +56,37 @@ const CategoriesAccordion = () => {
     return <Loader />;
   }
 
+  const styles = StyleSheet.create({
+    accordionContainer: {
+      display: "flex",
+      flexDirection: "column",
+      paddingHorizontal: theme.spacing(1),
+    },
+  });
+
   return (
     <FlatList
+      style={styles.accordionContainer}
       data={categoryStore.categories}
       keyExtractor={(_, index) => index.toString()}
-      renderItem={({ item: category }) => (
-        <Accordion
-          id={category.id}
-          title={category.name}
-          rightComponent={<CategoriesItemRight />}
-          items={categoryAccordion.get(category._id ?? "") ?? []}
-        />
-      )}
+      renderItem={({ item: category }) => {
+        const categoryItems: ListItemProps[] = category.subCategories.map(
+          (subCategory: string) => ({
+            title: subCategory,
+            leftComponent: <CategoriesItemLeft subCategoryName={subCategory} />,
+            rightComponent: <CategoriesItemRight />,
+          })
+        );
+
+        return (
+          <Accordion
+            id={category.id}
+            title={category.name}
+            rightComponent={<CategoriesItemRight />}
+            items={categoryItems}
+          />
+        );
+      }}
     />
   );
 };

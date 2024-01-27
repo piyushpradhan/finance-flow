@@ -21,7 +21,7 @@ import {
   NavigationContainerRef,
   useNavigation,
 } from "@react-navigation/native";
-import { RootStackParamList } from "../types";
+import { Category, RootStackParamList } from "../types";
 
 export default function EditCategory() {
   const theme = useAppTheme();
@@ -47,6 +47,25 @@ export default function EditCategory() {
         subCategories: subcategories,
         uid: userStore.uid,
       }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["categories"] });
+      const prevData: { data: Category[] } = queryClient.getQueryData([
+        "categories",
+      ]) ?? { data: [] };
+
+      const newCategory = {
+        name: categoryName,
+        transactions: [],
+        subCategories: subcategories,
+        uid: userStore.uid,
+      };
+      const updatedCategories = [...prevData.data, { ...newCategory, id: "0" }];
+
+      categoryStore.setCategories(updatedCategories);
+      queryClient.setQueryData(["categories"], updatedCategories);
+
+      return { prevData, updatedCategories };
+    },
     onSuccess: (data) => {
       const formattedData = data.data;
       // Sanitize the data obtained
@@ -62,7 +81,17 @@ export default function EditCategory() {
       }
 
       categoryStore.addCategories([formattedData]);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+    onError: (error, _variables, context) => {
+      console.error(error);
+      console.log(context?.prevData?.data);
+      if (context?.prevData?.data) {
+        categoryStore.setCategories(context?.prevData?.data);
+      }
+      queryClient.setQueryData(["categories"], context?.prevData);
     },
   });
 
@@ -231,7 +260,12 @@ export default function EditCategory() {
                   key={index}
                   style={styles.accordionItem}
                   title={subcategory}
-                  left={() => <CategoriesItemLeft disabled={!hasSubcategory} />}
+                  left={() => (
+                    <CategoriesItemLeft
+                      subCategoryName={subcategory}
+                      disabled={!hasSubcategory}
+                    />
+                  )}
                   right={() => (
                     <CategoriesItemRight
                       disabled={!hasSubcategory}

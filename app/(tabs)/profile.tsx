@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 import { View } from "react-native";
 import Button from "../../components/ui/Button";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { logout } from "../../api";
 import {
   NavigationContainerRef,
@@ -14,6 +14,7 @@ import { List } from "react-native-paper";
 import { RootStackParamList } from "../types";
 
 export default function Profile() {
+  const queryClient = useQueryClient();
   const navigation =
     useNavigation<NavigationContainerRef<RootStackParamList>>();
 
@@ -24,8 +25,9 @@ export default function Profile() {
     onError: (err) => {
       console.error(err);
     },
-    onSuccess: () => {
+    onMutate: () => {
       logoutUser();
+      queryClient.clear();
       navigation.navigate("(auth)");
     },
   });

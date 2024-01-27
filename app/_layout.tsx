@@ -8,14 +8,15 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import TabLayout from "./(tabs)/_layout";
 import ModalScreen from "./modal";
 import AuthenticationLayout from "./(auth)/_layout";
-import ThemeProvider from "../provider/ThemeProvider";
+import ThemeProvider, { useAppTheme } from "../provider/ThemeProvider";
 import CategoryLayout from "./(category)/_layout";
-import { Button } from "../components/ui";
+import { IconButton, Text } from "../components/ui";
 import {
   NavigationContainerRef,
   useNavigation,
 } from "@react-navigation/native";
 import { RootStackParamList } from "./types";
+import { View } from "react-native";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -62,9 +63,10 @@ export default function RootLayout() {
 
 function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   // const colorScheme = useColorScheme();
-  const queryClient = new QueryClient();
   const navigation =
     useNavigation<NavigationContainerRef<RootStackParamList>>();
+  const queryClient = new QueryClient();
+  const theme = useAppTheme();
 
   return (
     <ThemeProvider>
@@ -81,17 +83,42 @@ function RootLayoutNav({ isLoggedIn }: { isLoggedIn: boolean }) {
                 name="(category)"
                 component={CategoryLayout}
                 options={{
-                  headerShown: true,
-                  headerTitle: "Categories",
-                  headerRight: () => (
-                    <Button
-                      mode="contained"
-                      handleClick={() => {
-                        navigation.navigate("(category)/edit");
+                  headerShadowVisible: false,
+                  headerBackVisible: true,
+                  headerTitle: "",
+                  headerTitleAlign: "left",
+                  headerLeft: () => (
+                    <Text
+                      variant="headlineSmall"
+                      style={{
+                        fontWeight: "bold",
                       }}
                     >
-                      + Add
-                    </Button>
+                      Categories
+                    </Text>
+                  ),
+                  headerShown: true,
+                  headerRight: () => (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: 8,
+                      }}
+                    >
+                      <IconButton
+                        name="plus"
+                        onPress={() => {
+                          navigation.navigate("(category)/edit");
+                        }}
+                      />
+                      <IconButton
+                        name="more-vertical"
+                        onPress={() => {
+                          navigation.navigate("(category)/edit");
+                        }}
+                      />
+                    </View>
                   ),
                 }}
               />
