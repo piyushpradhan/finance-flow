@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Category } from "../models";
+import type { Category } from "../app/types";
 
 const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -40,6 +40,7 @@ export const createCategory = (
       subCategories: data.subCategories ?? [],
       icon: data.icon,
       uid: data.uid,
+      type: data.type,
     },
     config
   );
@@ -49,12 +50,12 @@ export const deleteSubCategory = (
   accessToken: string,
   refreshToken: string,
   uid: string,
-  subCategoryName: string
+  id: string
 ) =>
   axios.delete(`${backendUrl}/category/delete`, {
     data: {
       uid,
-      name: subCategoryName,
+      id,
     },
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -62,3 +63,32 @@ export const deleteSubCategory = (
       "Content-Type": "application/json",
     },
   });
+
+export const updateCategory = (
+  accessToken: string,
+  refreshToken: string,
+  uid: string,
+  id: string,
+  category: Category
+) => {
+  return axios.post(
+    `${backendUrl}/category/update`,
+    {
+      uid,
+      id,
+      name: category.name,
+      icon: category.icon,
+      transactions: category.transactions,
+      subCategories: category.subCategories,
+      isSubCategory: category.isSubcategory,
+      type: category.type,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};

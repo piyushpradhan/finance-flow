@@ -1,8 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Accordion } from "../ui";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCategories } from "../../api";
-import useUserStore from "../../store/features/user";
 import { FlatList, StyleSheet } from "react-native";
 
 import useCategoryStore from "../../store/features/category";
@@ -11,46 +8,14 @@ import CategoriesItemLeft from "./CategoriesItemLeft";
 import CategoriesItemRight from "./CategoriesItemRight";
 import { ListItemProps } from "../ui/types";
 import { useAppTheme } from "../../provider/ThemeProvider";
+import useGetAllCategories from "../../hooks/useGetAllCategories";
 
 const CategoriesAccordion = () => {
   const theme = useAppTheme();
-  const queryClient = useQueryClient();
-  const userStore = useUserStore();
   const categoryStore = useCategoryStore();
+  const categories = categoryStore.getParentCategories();
 
-  const {
-    data: response,
-    isSuccess,
-    isFetched,
-    isError,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () =>
-      getCategories(
-        userStore.accessToken,
-        userStore.refreshToken,
-        userStore.uid
-      ),
-  });
-
-  useEffect(() => {
-    if (isFetched) {
-      if (isSuccess) {
-        const responseData = response?.data ?? [];
-        responseData && categoryStore.setCategories(responseData);
-        queryClient.setQueryData(["categories"], () => {
-          return {
-            data: responseData,
-          };
-        });
-      } else if (isError) {
-        // TODO: Show a snackbar or something
-        console.error("Error fetching categories: ", error);
-      }
-    }
-  }, [response?.data, isSuccess, isFetched]);
+  const { isLoading } = useGetAllCategories();
 
   if (isLoading) {
     return <Loader />;
@@ -67,15 +32,21 @@ const CategoriesAccordion = () => {
   return (
     <FlatList
       style={styles.accordionContainer}
-      data={categoryStore.categories}
+      data={categories}
       keyExtractor={(_, index) => index.toString()}
       renderItem={({ item: category }) => {
         const categoryItems: ListItemProps[] = category.subCategories.map(
-          (subCategory: string) => ({
-            title: subCategory,
-            leftComponent: <CategoriesItemLeft subCategoryName={subCategory} />,
-            rightComponent: <CategoriesItemRight />,
-          })
+          (subCategoryId: string) => {
+            const subCategoryName: string =
+              categoryStore.categoriesById[subCategoryId]?.name ?? "";
+            return {
+              title: subCategoryName,
+              leftComponent: (
+                <CategoriesItemLeft subCategoryName={subCategoryName} />
+              ),
+              rightComponent: <CategoriesItemRight parentCategory={category} />,
+            };
+          }
         );
 
         return (
