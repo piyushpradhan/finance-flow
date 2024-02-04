@@ -6,14 +6,19 @@ import {
   NavigationContainerRef,
   useNavigation,
 } from "@react-navigation/native";
-import { RootStackParamList } from "../../app/types";
+import { Category, RootStackParamList } from "../../app/types";
 
 type Props = {
   handleEditItem?: (data?: unknown) => void;
   disabled?: boolean;
+  parentCategory?: Category;
 };
 
-const CategoriesItemRight = ({ handleEditItem, disabled = false }: Props) => {
+const CategoriesItemRight = ({
+  handleEditItem,
+  disabled = false,
+  parentCategory,
+}: Props) => {
   const theme = useAppTheme();
   const navigation =
     useNavigation<NavigationContainerRef<RootStackParamList>>();
@@ -23,7 +28,11 @@ const CategoriesItemRight = ({ handleEditItem, disabled = false }: Props) => {
       // Shows the input instead of the subcategory
       handleEditItem();
     }
-    navigation.navigate("(category)/edit");
+    if (parentCategory) {
+      navigation.navigate("(category)/edit", {
+        category: parentCategory,
+      });
+    }
   };
 
   const styles = StyleSheet.create({

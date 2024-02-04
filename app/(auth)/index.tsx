@@ -32,7 +32,6 @@ export default function LoginScreen() {
     onSuccess: (data) => {
       // TODO: Update the user data in global store
       // TODO: Figure out how to do Google Authentication with custom backend authetication
-      console.log("from api", data.data);
       router.replace("/(tabs)/dashboard");
     },
     onError: (error) => {

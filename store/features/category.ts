@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { Category, Categories } from "../../models";
+import type { Category, Categories } from "../../app/types";
 
 export interface ICategoryState extends Categories {
+  getParentCategories: () => Array<Category>;
   setCategories: (categories: Array<Category>) => void;
   getCategories: () => Array<Category>;
   addCategories: (categories: Array<Category>) => void;
@@ -30,8 +31,10 @@ const useCategoryStore = create<ICategoryState>()(
       categories: [],
       categoriesById: {},
       categoriesByName: {},
-      setCategories: (categories: Array<Category>) =>
-        set({
+      getParentCategories: () =>
+        get().categories.filter((category) => !category.isSubcategory),
+      setCategories: (categories: Array<Category>) => {
+        return set({
           categories,
           categoriesById: categories.reduce((byId, category) => {
             byId[category.id] = category;
@@ -41,7 +44,8 @@ const useCategoryStore = create<ICategoryState>()(
             byName[category.name] = category;
             return byName;
           }, get().categoriesByName),
-        }),
+        });
+      },
       getCategories: () => get().categories,
       addCategories: (categories: Array<Category>) =>
         set({

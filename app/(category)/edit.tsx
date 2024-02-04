@@ -14,7 +14,7 @@ import CategoriesItemRight from "../../components/Categories/CategoriesItemRight
 import CategoryListItem from "../../components/Categories/CategoryListItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useUserStore from "../../store/features/user";
-import { createCategory } from "../../api";
+import { createCategory, updateCategory } from "../../api";
 import useCategoryStore from "../../store/features/category";
 import { createCategoryObject } from "../../utils";
 import {
@@ -23,71 +23,92 @@ import {
 } from "@react-navigation/native";
 import { Category, RootStackParamList } from "../types";
 
-export default function EditCategory() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function EditCategory(props: any) {
   const theme = useAppTheme();
   const containerRef = useRef(null);
   const navigation =
     useNavigation<NavigationContainerRef<RootStackParamList>>();
-  const [categoryName, setCategoryName] = useState<string>("");
+  const category = props?.route?.params?.category;
+
+  const [categoryName, setCategoryName] = useState<string>(
+    category?.name ?? ""
+  );
   const [subcategoryName, setSubcategoryName] = useState<string>("");
-  const [hasSubcategory, setHasSubcategory] = useState<boolean>(false);
+  const [hasSubcategory, setHasSubcategory] = useState<boolean>(
+    category ? category.subCategories.length > 0 : false
+  );
   const [showSubcategoryInput, setShowSubcategoryInput] =
     useState<boolean>(false);
-  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [subcategories, setSubcategories] = useState<string[]>(
+    category?.subCategories ?? []
+  );
 
   const userStore = useUserStore();
   const categoryStore = useCategoryStore();
   const queryClient = useQueryClient();
 
+  const updateCategoryMutation = useMutation({
+    mutationKey: ["update-category"],
+    mutationFn: () =>
+      updateCategory(
+        userStore.accessToken,
+        userStore.refreshToken,
+        userStore.uid,
+        category?.id,
+        {
+          id: category?.id,
+          name: categoryName,
+          transactions: category?.transactions ?? [],
+          subCategories: subcategories,
+          uid: userStore.uid,
+          isSubcategory: false,
+          type: "expense",
+        }
+      ),
+  });
+
   const saveCategoryMutation = useMutation({
+    mutationKey: ["addCategory"],
     mutationFn: () =>
       createCategory(userStore.accessToken, userStore.refreshToken, {
         name: categoryName,
         transactions: [],
         subCategories: subcategories,
         uid: userStore.uid,
+        isSubcategory: false,
+        type: "expense",
       }),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["categories"] });
-      const prevData: { data: Category[] } = queryClient.getQueryData([
-        "categories",
+      await queryClient.cancelQueries({
+        queryKey: ["addCategory", "getCategories"],
+      });
+
+      const prevData: { data: Array<Category> } = queryClient.getQueryData([
+        "getCategories",
       ]) ?? { data: [] };
 
-      const newCategory = {
+      const newCategory: Category = {
+        id: "0",
         name: categoryName,
         transactions: [],
         subCategories: subcategories,
         uid: userStore.uid,
+        isSubcategory: false,
+        type: "expense",
       };
-      const updatedCategories = [...prevData.data, { ...newCategory, id: "0" }];
+
+      const updatedCategories = [...prevData.data, newCategory];
 
       categoryStore.setCategories(updatedCategories);
-      queryClient.setQueryData(["categories"], updatedCategories);
+      queryClient.setQueryData(["getCategories"], updatedCategories);
 
       return { prevData, updatedCategories };
     },
-    onSuccess: (data) => {
-      const formattedData = data.data;
-      // Sanitize the data obtained
-      // TODO: Try to sanitize data on the backend
-      delete formattedData.__v;
-      delete formattedData._id;
-
-      if (formattedData.subCategories.length !== 0) {
-        const subCategories = formattedData.subCategories.map((name: string) =>
-          createCategoryObject(name, userStore.uid)
-        );
-        categoryStore.addCategories(subCategories);
-      }
-
-      categoryStore.addCategories([formattedData]);
-    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["getCategories"] });
     },
-    onError: (error, _variables, context) => {
-      console.error(error);
-      console.log(context?.prevData?.data);
+    onError: (_error, _variables, context) => {
       if (context?.prevData?.data) {
         categoryStore.setCategories(context?.prevData?.data);
       }
@@ -302,7 +323,12 @@ export default function EditCategory() {
       <Button
         mode="contained"
         handleClick={() => {
-          saveCategoryMutation.mutate();
+          if (category) {
+            updateCategoryMutation.mutate();
+          } else {
+            saveCategoryMutation.mutate();
+          }
+
           navigation.goBack();
         }}
       >

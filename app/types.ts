@@ -2,7 +2,7 @@ export type RootStackParamList = {
   "(tabs)": undefined;
   "(category)": undefined;
   "(category)/categories": undefined;
-  "(category)/edit": undefined;
+  "(category)/edit": { category: Category };
   modal: undefined;
   "(auth)": undefined;
 };
@@ -14,6 +14,14 @@ export type Category = {
   subCategories: string[];
   uid: string;
   transactions: string[];
+  isSubcategory: boolean;
+  type: "income" | "expense";
+};
+
+export type Categories = {
+  categories: Array<Category>;
+  categoriesById: { [categoryId: string]: Category };
+  categoriesByName: { [categoryName: string]: Category };
 };
 
 export type Transaction = {

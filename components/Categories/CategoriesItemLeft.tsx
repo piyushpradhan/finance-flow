@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useUserStore from "../../store/features/user";
 import { deleteSubCategory } from "../../api";
 import useCategoryStore from "../../store/features/category";
+import { Category } from "../../app/types";
 
 type Props = {
   subCategoryName: string;
@@ -18,16 +19,39 @@ const CategoriesItemLeft = ({ disabled = false, subCategoryName }: Props) => {
   const queryClient = useQueryClient();
 
   const deleteSubCategoryMutation = useMutation({
-    mutationKey: ["deleteSubCategory"],
-    mutationFn: () =>
-      deleteSubCategory(
+    mutationKey: ["delete-subCategory"],
+    mutationFn: () => {
+      const targetCategory = categoryStore.categoriesByName[subCategoryName];
+      return deleteSubCategory(
         userStore.accessToken,
         userStore.refreshToken,
         userStore.uid,
-        subCategoryName
-      ),
-    onMutate: () => {
+        targetCategory.id
+      );
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({
+        queryKey: ["categories", "delete-subCategory"],
+      });
+      const prevData: { data: Category[] } = queryClient.getQueryData([
+        "categories",
+      ]) ?? { data: [] };
+
+      const categoryToBeDeleted =
+        categoryStore.categoriesByName[subCategoryName];
+
+      const updatedCategories = (prevData?.data ?? []).filter((category) => {
+        if (categoryToBeDeleted.isSubcategory) {
+          const updatedParent =
+            category.subCategories.includes(subCategoryName) &&
+            category.subCategories.filter((item) => item !== subCategoryName);
+          return updatedParent;
+        }
+        return category.name !== subCategoryName;
+      });
+
       categoryStore.deleteCategory({ categoryName: subCategoryName });
+      queryClient.setQueryData(["categories"], updatedCategories);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });

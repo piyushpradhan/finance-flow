@@ -7,6 +7,7 @@ export const CategorySchema = z.object({
   icon: z.string().optional(),
   transactions: z.array(z.string()),
   subCategories: z.array(z.string()),
+  isSubcategory: z.boolean().default(false),
 });
 
 export type Category = z.infer<typeof CategorySchema>;
