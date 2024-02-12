@@ -12,6 +12,7 @@ import useUserStore from "../../store/features/user";
 import { useAppTheme } from "../../provider/ThemeProvider";
 import { List } from "react-native-paper";
 import { RootStackParamList } from "../types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Profile() {
   const queryClient = useQueryClient();
@@ -26,7 +27,12 @@ export default function Profile() {
       console.error(err);
     },
     onMutate: () => {
+      // Remove user details from the device storage
+      AsyncStorage.clear();
+      // Remove user details from the global store
       logoutUser();
+      // TODO: Remove categories from the global store
+      // Remove cachced data
       queryClient.clear();
       navigation.navigate("(auth)");
     },

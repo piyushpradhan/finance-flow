@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "./index";
 
 const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
 

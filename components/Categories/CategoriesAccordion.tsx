@@ -8,7 +8,8 @@ import CategoriesItemLeft from "./CategoriesItemLeft";
 import CategoriesItemRight from "./CategoriesItemRight";
 import { ListItemProps } from "../ui/types";
 import { useAppTheme } from "../../provider/ThemeProvider";
-import useGetAllCategories from "../../hooks/useGetAllCategories";
+import useGetAllCategories from "../../hooks/category/useGetAllCategories";
+import { Category } from "../../app/types";
 
 const CategoriesAccordion = () => {
   const theme = useAppTheme();
@@ -37,13 +38,12 @@ const CategoriesAccordion = () => {
       renderItem={({ item: category }) => {
         const categoryItems: ListItemProps[] = category.subCategories.map(
           (subCategoryId: string) => {
-            const subCategoryName: string =
-              categoryStore.categoriesById[subCategoryId]?.name ?? "";
+            const subCategory: Category =
+              categoryStore.categoriesById[subCategoryId];
+
             return {
-              title: subCategoryName,
-              leftComponent: (
-                <CategoriesItemLeft subCategoryName={subCategoryName} />
-              ),
+              item: subCategory,
+              leftComponent: <CategoriesItemLeft subCategory={subCategory} />,
               rightComponent: <CategoriesItemRight parentCategory={category} />,
             };
           }

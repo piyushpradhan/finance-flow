@@ -1,5 +1,7 @@
+import { Category } from "../../app/types";
+
 export type ListItemProps = {
-  title: string;
+  item: Category;
   description?: string;
   leftComponent?: React.ReactNode;
   rightComponent?: React.ReactNode;

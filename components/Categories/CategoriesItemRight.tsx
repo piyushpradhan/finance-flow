@@ -26,6 +26,7 @@ const CategoriesItemRight = ({
   const handleEdit = () => {
     if (handleEditItem) {
       // Shows the input instead of the subcategory
+      // in the category edit screen
       handleEditItem();
     }
     if (parentCategory) {

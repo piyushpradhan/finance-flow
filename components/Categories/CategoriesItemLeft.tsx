@@ -9,29 +9,27 @@ import useCategoryStore from "../../store/features/category";
 import { Category } from "../../app/types";
 
 type Props = {
-  subCategoryName: string;
+  subCategory: Category | string;
   disabled?: boolean;
 };
 
-const CategoriesItemLeft = ({ disabled = false, subCategoryName }: Props) => {
+const CategoriesItemLeft = ({ disabled = false, subCategory }: Props) => {
   const userStore = useUserStore();
   const categoryStore = useCategoryStore();
   const queryClient = useQueryClient();
 
+  const subCategoryName =
+    typeof subCategory === "string" ? subCategory : subCategory?.name ?? "";
+
   const deleteSubCategoryMutation = useMutation({
-    mutationKey: ["delete-subCategory"],
+    mutationKey: ["deleteSubCategory"],
     mutationFn: () => {
       const targetCategory = categoryStore.categoriesByName[subCategoryName];
-      return deleteSubCategory(
-        userStore.accessToken,
-        userStore.refreshToken,
-        userStore.uid,
-        targetCategory.id
-      );
+      return deleteSubCategory(userStore.uid, targetCategory.id);
     },
     onMutate: async () => {
       await queryClient.cancelQueries({
-        queryKey: ["categories", "delete-subCategory"],
+        queryKey: ["categories", "deleteSubCategory"],
       });
       const prevData: { data: Category[] } = queryClient.getQueryData([
         "categories",

@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { v4 } from "uuid";
 import {
   View,
   StyleSheet,
@@ -9,76 +10,63 @@ import {
 import { Text, IconButton, Input, Switch, Button } from "../../components/ui";
 import { useAppTheme } from "../../provider/ThemeProvider";
 import { List } from "react-native-paper";
-import CategoriesItemLeft from "../../components/Categories/CategoriesItemLeft";
 import CategoriesItemRight from "../../components/Categories/CategoriesItemRight";
 import CategoryListItem from "../../components/Categories/CategoryListItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useUserStore from "../../store/features/user";
 import { createCategory, updateCategory } from "../../api";
 import useCategoryStore from "../../store/features/category";
-import { createCategoryObject } from "../../utils";
 import {
   NavigationContainerRef,
   useNavigation,
 } from "@react-navigation/native";
 import { Category, RootStackParamList } from "../types";
+import useUpdateCategoryMutation from "../../hooks/category/useUpdateCategory";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function EditCategory(props: any) {
   const theme = useAppTheme();
-  const containerRef = useRef(null);
   const navigation =
     useNavigation<NavigationContainerRef<RootStackParamList>>();
-  const category = props?.route?.params?.category;
+  const categoryStore = useCategoryStore();
+  const userStore = useUserStore();
+  const queryClient = useQueryClient();
+
+  const containerRef = useRef(null);
+
+  const category: Category = props?.route?.params?.category;
 
   const [categoryName, setCategoryName] = useState<string>(
     category?.name ?? ""
   );
-  const [subcategoryName, setSubcategoryName] = useState<string>("");
+  const [subCategoryName, setSubcategoryName] = useState<string>("");
   const [hasSubcategory, setHasSubcategory] = useState<boolean>(
     category ? category.subCategories.length > 0 : false
   );
   const [showSubcategoryInput, setShowSubcategoryInput] =
     useState<boolean>(false);
-  const [subcategories, setSubcategories] = useState<string[]>(
-    category?.subCategories ?? []
+
+  const existingSubCategories: Array<Category> =
+    categoryStore.getSubCategories(category?.id) ?? [];
+
+  const [subCategories, setSubcategories] = useState<Array<Category>>(
+    existingSubCategories ?? []
   );
 
-  const userStore = useUserStore();
-  const categoryStore = useCategoryStore();
-  const queryClient = useQueryClient();
-
-  const updateCategoryMutation = useMutation({
-    mutationKey: ["update-category"],
-    mutationFn: () =>
-      updateCategory(
-        userStore.accessToken,
-        userStore.refreshToken,
-        userStore.uid,
-        category?.id,
-        {
-          id: category?.id,
-          name: categoryName,
-          transactions: category?.transactions ?? [],
-          subCategories: subcategories,
-          uid: userStore.uid,
-          isSubcategory: false,
-          type: "expense",
-        }
-      ),
-  });
+  const { mutate: mutateUpdateCategory } = useUpdateCategoryMutation();
 
   const saveCategoryMutation = useMutation({
     mutationKey: ["addCategory"],
     mutationFn: () =>
-      createCategory(userStore.accessToken, userStore.refreshToken, {
+      createCategory({
         name: categoryName,
         transactions: [],
-        subCategories: subcategories,
+        subCategories: subCategories.map((item) => item.name),
         uid: userStore.uid,
         isSubcategory: false,
         type: "expense",
       }),
+
     onMutate: async () => {
       await queryClient.cancelQueries({
         queryKey: ["addCategory", "getCategories"],
@@ -89,10 +77,10 @@ export default function EditCategory(props: any) {
       ]) ?? { data: [] };
 
       const newCategory: Category = {
-        id: "0",
+        id: v4(),
         name: categoryName,
         transactions: [],
-        subCategories: subcategories,
+        subCategories: subCategories.map((item) => item.id),
         uid: userStore.uid,
         isSubcategory: false,
         type: "expense",
@@ -112,7 +100,7 @@ export default function EditCategory(props: any) {
       if (context?.prevData?.data) {
         categoryStore.setCategories(context?.prevData?.data);
       }
-      queryClient.setQueryData(["categories"], context?.prevData);
+      queryClient.setQueryData(["getCategories"], context?.prevData);
     },
   });
 
@@ -128,7 +116,7 @@ export default function EditCategory(props: any) {
     setCategoryName(text);
   };
 
-  // Add an input field for a new subcategory
+  // Add an input field for a new subCategory
   const addSubcategoryInput = () => {
     setShowSubcategoryInput((prev) => !prev);
   };
@@ -144,13 +132,23 @@ export default function EditCategory(props: any) {
       return;
     }
 
+    const updatedCategory: Category = {
+      id: "",
+      name: value,
+      transactions: [],
+      subCategories: [],
+      isSubcategory: true,
+      type: "expense",
+      uid: userStore.uid,
+    };
+
     if (!editSubcategoryInput) {
       value &&
         value.trim().length !== 0 &&
-        setSubcategories((prev) => [...prev, value]);
+        setSubcategories((prev) => [...prev, updatedCategory]);
     } else {
-      const updatedSubcategories = subcategories;
-      updatedSubcategories[editSubcategoryInput - 1] = value;
+      const updatedSubcategories = subCategories;
+      updatedSubcategories[editSubcategoryInput - 1] = updatedCategory;
 
       value &&
         value.trim().length !== 0 &&
@@ -177,14 +175,14 @@ export default function EditCategory(props: any) {
     saveButton: {
       marginBottom: theme.spacing(1),
     },
-    subcategoryToggleContainer: {
+    subCategoryToggleContainer: {
       width: "100%",
       display: "flex",
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
     },
-    subcategoriesContainer: {
+    subCategoriesContainer: {
       display: "flex",
       flexDirection: "column",
       justifyContent: "center",
@@ -193,7 +191,7 @@ export default function EditCategory(props: any) {
     accordionItem: {
       padding: theme.spacing(1),
     },
-    subcategoryInputContainer: {
+    subCategoryInputContainer: {
       width: "100%",
       display: "flex",
       flexDirection: "row",
@@ -201,13 +199,13 @@ export default function EditCategory(props: any) {
       alignItems: "center",
       marginHorizontal: 8,
     },
-    subcategoryInput: {
+    subCategoryInput: {
       width: "90%",
       height: 16,
       fontSize: 14,
       paddingVertical: theme.spacing(1),
     },
-    subcategoryRemoveContainer: {
+    subCategoryRemoveContainer: {
       height: "100%",
       flexGrow: 1,
       display: "flex",
@@ -223,7 +221,7 @@ export default function EditCategory(props: any) {
       paddingVertical: theme.spacing(1.2),
       backgroundColor: theme.colors.primary,
     },
-    subcategoriesList: {
+    subCategoriesList: {
       width: "100%",
     },
   });
@@ -249,7 +247,7 @@ export default function EditCategory(props: any) {
             autoCapitalize: "none",
           }}
         />
-        <View style={styles.subcategoryToggleContainer}>
+        <View style={styles.subCategoryToggleContainer}>
           <Text variant="labelSmall">Has sub-category</Text>
           <Switch
             disabled={categoryName.trim().length === 0}
@@ -257,17 +255,17 @@ export default function EditCategory(props: any) {
             toggleSwitch={handleSubcategoryToggle}
           />
         </View>
-        <View style={styles.subcategoriesContainer}>
+        <View style={styles.subCategoriesContainer}>
           <FlatList
-            data={subcategories}
-            style={styles.subcategoriesList}
+            data={subCategories}
+            style={styles.subCategoriesList}
             keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item: subcategory, index }) => {
+            renderItem={({ item: subCategory, index }) => {
               return editSubcategoryInput &&
                 editSubcategoryInput - 1 === index ? (
                 <CategoryListItem
                   key={index}
-                  name={subcategoryName}
+                  name={subCategoryName}
                   setName={setSubcategoryName}
                   updateValue={updateSubcategory}
                   setShowSubcategoryInput={setShowSubcategoryInput}
@@ -280,19 +278,13 @@ export default function EditCategory(props: any) {
                 <List.Item
                   key={index}
                   style={styles.accordionItem}
-                  title={subcategory}
-                  left={() => (
-                    <CategoriesItemLeft
-                      subCategoryName={subcategory}
-                      disabled={!hasSubcategory}
-                    />
-                  )}
+                  title={subCategory.name}
                   right={() => (
                     <CategoriesItemRight
                       disabled={!hasSubcategory}
                       handleEditItem={() => {
                         setEditSubcategoryInput(index + 1);
-                        setSubcategoryName(subcategory);
+                        setSubcategoryName(subCategory.name);
                       }}
                     />
                   )}
@@ -302,7 +294,7 @@ export default function EditCategory(props: any) {
           />
           {showSubcategoryInput && (
             <CategoryListItem
-              name={subcategoryName}
+              name={subCategoryName}
               setName={setSubcategoryName}
               updateValue={updateSubcategory}
               setShowSubcategoryInput={setShowSubcategoryInput}
@@ -324,7 +316,11 @@ export default function EditCategory(props: any) {
         mode="contained"
         handleClick={() => {
           if (category) {
-            updateCategoryMutation.mutate();
+            mutateUpdateCategory({
+              category,
+              categoryName,
+              subCategories: subCategories.map((item) => item.id),
+            });
           } else {
             saveCategoryMutation.mutate();
           }

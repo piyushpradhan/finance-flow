@@ -34,3 +34,16 @@ export type Transaction = {
   note?: string;
   type: "income" | "expense" | "transfer" | "debt" | "receivable";
 };
+
+export type User = {
+  isLoggedIn?: boolean;
+  uid: string;
+  username: string;
+  accessToken: string;
+  refreshToken: string;
+  currency?: string;
+  email: string;
+  displayPicture?: string;
+  accounts?: Array<string>;
+  categories: Array<string>;
+};

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, devtools, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { User } from "../../models/user";
+import { User } from "../../app/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface IUserState extends User {
@@ -24,6 +24,7 @@ const useUserStore = create<IUserState>()(
           refreshToken: "",
           currency: "INR",
           accounts: [],
+          categories: [],
 
           setUser: (uid, username, accessToken) => {
             set({ isLoggedIn: true, uid, username, accessToken });

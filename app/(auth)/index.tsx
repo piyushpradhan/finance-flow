@@ -9,6 +9,8 @@ import { useState } from "react";
 import Colors from "../../constants/Colors";
 import { useRouter } from "expo-router";
 import useUserStore from "../../store/features/user";
+import { User } from "../types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -18,8 +20,15 @@ export default function LoginScreen() {
 
   const loginMutation = useMutation({
     mutationFn: () => login(emailInput, passwordInput),
-    onSuccess: (data) => {
-      userStore.loginWithPassword(data.data["data"]);
+    onSuccess: async (data) => {
+      const loggedInUser: User = data.data["data"];
+      // Store the logged in user data in device storage
+      await AsyncStorage.setItem("accessToken", loggedInUser.accessToken);
+      await AsyncStorage.setItem("refreshToken", loggedInUser.refreshToken);
+      await AsyncStorage.setItem("uid", loggedInUser.uid);
+      // Update the store with logged in user data
+      userStore.loginWithPassword(loggedInUser);
+      // Navigate to home page
       router.replace("/(tabs)/dashboard");
     },
     onError: (err) => {
@@ -29,7 +38,7 @@ export default function LoginScreen() {
 
   const loginWithGoogleMutation = useMutation({
     mutationFn: loginWithGoogle,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // TODO: Update the user data in global store
       // TODO: Figure out how to do Google Authentication with custom backend authetication
       router.replace("/(tabs)/dashboard");

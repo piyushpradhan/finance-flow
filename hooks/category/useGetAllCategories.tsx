@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCategories } from "../api";
-import useUserStore from "../store/features/user";
+import { getCategories } from "../../api";
+import useUserStore from "../../store/features/user";
 import { useEffect } from "react";
-import useCategoryStore from "../store/features/category";
+import useCategoryStore from "../../store/features/category";
 
 const useGetAllCategories = () => {
   const queryClient = useQueryClient();
@@ -18,12 +18,10 @@ const useGetAllCategories = () => {
     error,
   } = useQuery({
     queryKey: ["getCategories"],
-    queryFn: () =>
-      getCategories(
-        userStore.accessToken,
-        userStore.refreshToken,
-        userStore.uid
-      ),
+    queryFn: () => {
+      console.log("UID is present: ", userStore.uid);
+      return getCategories(userStore.uid);
+    },
   });
 
   useEffect(() => {
@@ -40,7 +38,7 @@ const useGetAllCategories = () => {
         console.error("Error fetching categories: ", error);
       }
     }
-  }, [response?.data, isSuccess, isFetched]);
+  }, [response, isLoading]);
 
   return {
     isLoading,

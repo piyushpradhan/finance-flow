@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { Animated, StyleSheet } from "react-native";
 import { Divider, List } from "react-native-paper";
 import { useAppTheme } from "../../provider/ThemeProvider";
-import { Text } from "../../components/ui";
 
 import type { ListItemProps } from "./types";
-import { RectButton, Swipeable } from "react-native-gesture-handler";
+import Swipeable from "../../components/Swipeable";
 
 type Props = {
   id: string;
@@ -29,14 +28,8 @@ const Accordion = ({ id, title, rightComponent, items }: Props) => {
       fontWeight: "bold",
     },
     accordionItem: {
+      backgroundColor: theme.colors.surface,
       padding: 8,
-    },
-    rightSwipeButton: {
-      backgroundColor: theme.colors.error,
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      color: theme.colors.surface,
     },
   });
 
@@ -55,34 +48,15 @@ const Accordion = ({ id, title, rightComponent, items }: Props) => {
     animateAccordion(finalValue);
   };
 
-  const renderRightActions = (
-    _progress: Animated.AnimatedInterpolation<number>,
-    dragX: Animated.AnimatedInterpolation<number>
-  ) => {
-    const translate = dragX.interpolate({
-      inputRange: [0, 50, 100, 101],
-      outputRange: [-20, 0, 0, 1],
-    });
-
-    return (
-      <RectButton style={styles.rightSwipeButton}>
-        <Animated.Text
-          style={[
-            {
-              transform: [{ translateX: translate }],
-            },
-          ]}
-        >
-          Delete
-        </Animated.Text>
-      </RectButton>
-    );
-  };
-
   // TODO: Assign proper id for each accordion in the group of accordions
   // if there are multiple accordions in a group otherwise just ignore
   return (
-    <Swipeable renderRightActions={renderRightActions}>
+    <Swipeable
+      itemToBeDeleted={{
+        title: title,
+        itemId: id,
+      }}
+    >
       <List.Accordion
         style={styles.accordionParent}
         title={title}
@@ -92,16 +66,21 @@ const Accordion = ({ id, title, rightComponent, items }: Props) => {
         titleNumberOfLines={1}
       >
         {items.map((accordionItem, index) => (
-          <React.Fragment key={index}>
+          <Swipeable
+            itemToBeDeleted={{
+              title: accordionItem.item.name,
+              itemId: accordionItem.item.id,
+            }}
+            key={index}
+          >
             <List.Item
               style={styles.accordionItem}
-              title={accordionItem.title}
+              title={accordionItem.item.name}
               description={accordionItem.description}
-              left={() => accordionItem.leftComponent}
               right={() => accordionItem.rightComponent}
             />
             {index !== items.length - 1 && <Divider />}
-          </React.Fragment>
+          </Swipeable>
         ))}
       </List.Accordion>
     </Swipeable>

@@ -14,8 +14,8 @@ export interface ICategoryState extends Categories {
   ) => void;
   // addCategory: (newCategory: Category) => void;
   // getCategory: (categoryId: string) => Category;
-  // getSubcategories: (categoryId: string) => Array<Category>;
-  // updateSubcategories: (
+  getSubCategories: (categoryId: string) => Array<Category>;
+  // updateSubCategories: (
   //   categoryId: string,
   //   updated: Array<Category>
   // ) => void;
@@ -91,6 +91,14 @@ const useCategoryStore = create<ICategoryState>()(
             categoriesByName: categoriesByName,
           };
         }),
+      getSubCategories: (categoryId: string) => {
+        const subCategoryIds =
+          get().categoriesById[categoryId]?.subCategories ?? [];
+        const subCategories: Array<Category> = subCategoryIds.map(
+          (subCategoryId) => get().categoriesById[subCategoryId]
+        );
+        return subCategories;
+      },
     }))
   )
 );
