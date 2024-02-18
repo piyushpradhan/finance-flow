@@ -19,7 +19,6 @@ const useGetAllCategories = () => {
   } = useQuery({
     queryKey: ["getCategories"],
     queryFn: () => {
-      console.log("UID is present: ", userStore.uid);
       return getCategories(userStore.uid);
     },
   });

@@ -14,7 +14,8 @@ import CategoriesItemRight from "../../components/Categories/CategoriesItemRight
 import CategoryListItem from "../../components/Categories/CategoryListItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useUserStore from "../../store/features/user";
-import { createCategory, updateCategory } from "../../api";
+import { createCategory } from "../../api";
+import * as keys from "../../hooks/keys";
 import useCategoryStore from "../../store/features/category";
 import {
   NavigationContainerRef,
@@ -55,13 +56,22 @@ export default function EditCategory(props: any) {
 
   const { mutate: mutateUpdateCategory } = useUpdateCategoryMutation();
 
+  console.log("Creation payload: ", {
+    name: categoryName,
+    transactions: [],
+    subCategories: subCategories.map((item) => item.name),
+    uid: userStore.uid,
+    isSubcategory: false,
+    type: "expense",
+  });
+
   const saveCategoryMutation = useMutation({
-    mutationKey: ["addCategory"],
+    mutationKey: [keys.categories.ADD_CATEGORY],
     mutationFn: () =>
       createCategory({
         name: categoryName,
         transactions: [],
-        subCategories: subCategories.map((item) => item.name),
+        subCategories: subCategories.map((item) => item.id),
         uid: userStore.uid,
         isSubcategory: false,
         type: "expense",
@@ -69,15 +79,18 @@ export default function EditCategory(props: any) {
 
     onMutate: async () => {
       await queryClient.cancelQueries({
-        queryKey: ["addCategory", "getCategories"],
+        queryKey: [
+          keys.categories.ADD_CATEGORY,
+          keys.categories.GET_CATEGORIES,
+        ],
       });
 
       const prevData: { data: Array<Category> } = queryClient.getQueryData([
-        "getCategories",
+        keys.categories.GET_CATEGORIES,
       ]) ?? { data: [] };
 
       const newCategory: Category = {
-        id: v4(),
+        id: "random butllshit",
         name: categoryName,
         transactions: [],
         subCategories: subCategories.map((item) => item.id),
@@ -88,19 +101,31 @@ export default function EditCategory(props: any) {
 
       const updatedCategories = [...prevData.data, newCategory];
 
+      console.log("Inside onMutate", updatedCategories);
+
       categoryStore.setCategories(updatedCategories);
-      queryClient.setQueryData(["getCategories"], updatedCategories);
+      queryClient.setQueryData(
+        [keys.categories.GET_CATEGORIES],
+        updatedCategories
+      );
 
       return { prevData, updatedCategories };
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["getCategories"] });
+    onSettled: (data) => {
+      console.log("Settled", data);
+      queryClient.invalidateQueries({
+        queryKey: [keys.categories.GET_CATEGORIES],
+      });
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, _variables, context) => {
+      console.error(error);
       if (context?.prevData?.data) {
         categoryStore.setCategories(context?.prevData?.data);
       }
-      queryClient.setQueryData(["getCategories"], context?.prevData);
+      queryClient.setQueryData(
+        [keys.categories.GET_CATEGORIES],
+        context?.prevData
+      );
     },
   });
 
@@ -159,6 +184,8 @@ export default function EditCategory(props: any) {
     setShowSubcategoryInput(false);
     setSubcategoryName("");
   };
+
+  console.log({ subCategories, subCategoryName, category });
 
   const styles = StyleSheet.create({
     container: {

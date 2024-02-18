@@ -10,8 +10,8 @@ export const getCategories = (uid: string) =>
     },
   });
 
-export const createCategory = (data: Omit<Category, "id">) => {
-  return axios.post(`${backendUrl}/category/create`, {
+export const createCategory = (data: Omit<Category, "id">) =>
+  axios.post(`${backendUrl}/category/create`, {
     name: data.name,
     transactions: data.transactions ?? [],
     subCategories: data.subCategories ?? [],
@@ -19,7 +19,6 @@ export const createCategory = (data: Omit<Category, "id">) => {
     uid: data.uid,
     type: data.type,
   });
-};
 
 export const deleteSubCategory = (uid: string, id: string) =>
   axios.delete(`${backendUrl}/category/delete`, {
